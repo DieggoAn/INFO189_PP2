@@ -53,12 +53,13 @@ std::map<std::string, std::vector<FileData>> readIndexFile(const std::string& fi
     file.close();
     return dataMap;
 }
-void printFileDataForMultipleKeys(const std::map<std::string, std::vector<FileData>>& dataMap, const std::string& keys) {
+std::string printFileDataForMultipleKeys(const std::map<std::string, std::vector<FileData>>& dataMap, const std::string& keys, int TOPK) {
     // Split the keys into individual words.
     std::istringstream keyStream(keys);
     std::vector<std::string> keyList;
     std::string key;
     std::cout << keys << std::endl;
+    std::string rezultado;
     while (std::getline(keyStream, key, ' ')) {
         keyList.push_back(key);
     }
@@ -106,6 +107,7 @@ void printFileDataForMultipleKeys(const std::map<std::string, std::vector<FileDa
             [](const std::pair<std::string, int>& a, const std::pair<std::string, int>& b) {
                 return a.second > b.second;
             });
+    int cont = 0;
     for (const auto& entry : sortedRecurrence) {
         const std::string& filename = entry.first;
         int recurrence = entry.second;
@@ -113,8 +115,14 @@ void printFileDataForMultipleKeys(const std::map<std::string, std::vector<FileDa
 
         if (matchedCount == totalKeys) {
             std::cout << "Filename: " << filename << ", Recurrence: " << recurrence << std::endl;
+            if(cont < TOPK){
+                rezultado += filename + ":" + std::to_string(recurrence) + ";";
+                cont ++;
+                std::cout << rezultado << std::endl;
+            }
         }
     }
+    return rezultado;
 }
 
 
@@ -135,13 +143,13 @@ int main(int argc, char* argv[]) {
             std::getline(std::cin, userInput);
             std::transform(userInput.begin(), userInput.end(), userInput.begin(), ::tolower); 
             std::cout << "Respuesta: ";          
-            // Imprime los resultados
-            printFileDataForMultipleKeys(dataMap, userInput);  
-            std::cout << std::endl;
-            std::cout<<std::endl;
+            // Imprime los resultados ACA SE GUARDA EL STRING CON LA RESPUESTA!!!!!!
+            std::string rezultado = printFileDataForMultipleKeys(dataMap, userInput, std::stoi(TOPK));  
 
+            std::cout << "final ..: "<<rezultado<<std::endl;;
             std::cout << "Desea seguir (S/N):" ;
             std::cin >> seguir;
+
             seguir = std::tolower(static_cast<unsigned char>(seguir));
         }
     return 0;

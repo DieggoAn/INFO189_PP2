@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+
 void loadEnvFromFile(const std::string& envFilePath) { //funcion para cargar variables de entorno
     std::ifstream file(envFilePath);
     std::string line;
@@ -35,6 +36,9 @@ int main() {
 
     loadEnvFromFile(".env"); //se cargan variables de entorno
     executeInvertedIndex(getenv("PATH_FILES_OUT"), getenv("INVERTED_INDEX_FILE"),getenv("INVERTED_INDEX_APP"));//ejecucion inverted index
+
+    
+
 
 
     return 0;
