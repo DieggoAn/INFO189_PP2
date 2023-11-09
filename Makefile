@@ -1,22 +1,17 @@
 CXX = g++
 CXXFLAGS = -std=c++17
 
-invertedIndex: programas/invertedIndex.cpp
-	$(CXX) $(CXXFLAGS) -o ejecutables/invertedIndex programas/invertedIndex.cpp
+backend: Backend/llamarBuscador.cpp
+	$(CXX) $(CXXFLAGS) -o Backend/backend Backend/llamarBuscador.cpp
 
-backend: programas/llamarBuscador.cpp
-	$(CXX) $(CXXFLAGS) -o ejecutables/backend programas/llamarBuscador.cpp
+searcher: Frontend/frontend.cpp
+	$(CXX) $(CXXFLAGS) -o Frontend/searcher Frontend/frontend.cpp
 
-searcher: programas/frontend.cpp
-	$(CXX) $(CXXFLAGS) -o ejecutables/searcher programas/frontend.cpp
-
-memcache: programas/cache.cpp
-	$(CXX) $(CXXFLAGS) -o ejecutables/memcache programas/cache.cpp
+memcache: Cache/cache.cpp
+	$(CXX) $(CXXFLAGS) -o Cache/memcache Cache/cache.cpp
 
 
-all: invertedIndex backend searcher memcache
+all: backend searcher memcache
 
-clean:
-	rm -f ejecutables/*
 
 .PHONY: all clean

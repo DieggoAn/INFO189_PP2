@@ -124,16 +124,37 @@ std::string printFileDataForMultipleKeys(const std::map<std::string, std::vector
     }
     return rezultado;
 }
+void loadEnvFromFile(const std::string& envFilePath) { //funcion para cargar variables de entorno
+    std::ifstream file(envFilePath);
+    std::string line;
 
+    if (file.is_open()) {
+        while (getline(file, line)) {
+            // Check if the line contains an environment variable assignment
+            size_t equalsPos = line.find('=');
+            if (equalsPos != std::string::npos) {
+                std::string varName = line.substr(0, equalsPos);
+                std::string varValue = line.substr(equalsPos + 1);
+                
+                // Set the environment variable in the current process
+                setenv(varName.c_str(), varValue.c_str(), 1);
+            }
+        }
+        file.close();
+    } else {
+        std::cerr << "Unable to open .env file: " << envFilePath << std::endl;
+    }
+}
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {;
     // Define a map to store each line from the input file
-    std::string indexFile = argv[1];
-    std::string TOPK = argv[2];
+    std::string TOPK = argv[1];
     char seguir = 's';
+    loadEnvFromFile("Backend/.env1");
+    std::cout << getenv("FILE")<<std::endl;
     while (seguir == 's' ){
 
-            std::map<std::string, std::vector<FileData>> dataMap = readIndexFile(indexFile);
+            std::map<std::string, std::vector<FileData>> dataMap = readIndexFile(getenv("FILE"));
             std::string userInput = "";
             pid_t pid = getpid();
 

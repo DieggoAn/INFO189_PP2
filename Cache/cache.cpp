@@ -4,7 +4,7 @@
 #include <string>
 #include <sstream>
 #include <regex>
-
+#include <fstream>
 
 std::pair<std::string, std::string> parseMessage(const std::string& message) { //funcion que parsea el mensaje 
     std::smatch match;
@@ -23,9 +23,31 @@ struct FileData {
     int recurrence;
 };
 
+
+void loadEnvFromFile(const std::string& envFilePath) { //funcion para cargar variables de entorno
+    std::ifstream file(envFilePath);
+    std::string line;
+
+    if (file.is_open()) {
+        while (getline(file, line)) {
+            // Check if the line contains an environment variable assignment
+            size_t equalsPos = line.find('=');
+            if (equalsPos != std::string::npos) {
+                std::string varName = line.substr(0, equalsPos);
+                std::string varValue = line.substr(equalsPos + 1);
+                
+                // Set the environment variable in the current process
+                setenv(varName.c_str(), varValue.c_str(), 1);
+            }
+        }
+        file.close();
+    } else {
+        std::cerr << "Unable to open .env file: " << envFilePath << std::endl;
+    }
+}
+
 std::map<std::string, std::vector<FileData>> parseData(const std::string& data) { //funcion que parsea mensaje y los anade a un map
     std::map<std::string, std::vector<FileData>> dataMap;
-
     std::istringstream iss(data);
     std::string word;
     while (std::getline(iss, word, ';')) {
@@ -57,6 +79,7 @@ bool checkWordsInMap(const std::string& txtToSearch, int TOPK,const std::map<std
 }
 
 int main() {
+    loadEnvFromFile("Cache/.env");
     std::string data = "meagre impositions,file034.txt:1;file029.txt:1;file021.txt:4;file025.txt:1;file035.txt:1;";
     std::map<std::string, std::vector<FileData>> dataMap = parseData(data);
     // Example: Print the parsed data

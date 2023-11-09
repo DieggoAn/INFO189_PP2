@@ -1,0 +1,4 @@
+FROM=./Frontend/searcher
+TO=./Cache/memcache
+FILE=Backend/file.txt
+TOPK=4

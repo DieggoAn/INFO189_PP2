@@ -28,17 +28,9 @@ void loadEnvFromFile(const std::string& envFilePath) { //funcion para cargar var
     }
 }
 
-void executeInvertedIndex(const std::string& param1, const std::string& param2, const std::string& param3){ //funcion para ejecutar inverted index
-    std::string command = param3 + " " + param1 + " " + param2;
-    int exitCode = std::system(command.c_str());
-}
-
-
-
 int main() {
 
-    loadEnvFromFile(".env"); //se cargan variables de entorno
-    executeInvertedIndex(getenv("PATH_FILES_OUT"), getenv("INVERTED_INDEX_FILE"),getenv("INVERTED_INDEX_APP"));//ejecucion inverted index
+    loadEnvFromFile("Frontend/.env"); //se cargan variables de entorno
     char seguir = 's';
     std::string userInput;
     while (seguir== 's'){ 
