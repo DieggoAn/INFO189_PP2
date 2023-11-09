@@ -140,6 +140,7 @@ int main(int argc, char* argv[]) {
             std::cout << "“BUSCADOR BASADO EN INDICE INVERTIDO” (" << pid<<")" <<std::endl;
             std::cout << "Los top K documentos serán =: "<< TOPK <<std::endl;
             std::cout << "Escriba texto a buscar: ";
+            std::cin >> std::ws;
             std::getline(std::cin, userInput);
             std::transform(userInput.begin(), userInput.end(), userInput.begin(), ::tolower); 
             std::cout << "Respuesta: ";          
