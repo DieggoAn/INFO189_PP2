@@ -53,7 +53,6 @@ std::string receiveMessageFromCache() {
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(PORT_BACKEND);
     serverAddr.sin_addr.s_addr = INADDR_ANY;
-
     if (bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == -1) {
         std::cerr << "Error binding server socket" << std::endl;
         close(serverSocket);
@@ -78,7 +77,6 @@ std::string receiveMessageFromCache() {
 
     close(clientSocket);
     close(serverSocket);
-
     return std::string(buffer);
 }
 
@@ -220,33 +218,16 @@ void loadEnvFromFile(const std::string& envFilePath) { //funcion para cargar var
     }
 }
 
-int main(int argc, char* argv[]) {;
-    // Define a map to store each line from the input file
-    std::string TOPK = argv[1];
-    char seguir = 's';
-    loadEnvFromFile("Backend/.env1");
-    std::cout << getenv("FILE")<<std::endl;
-    while (seguir == 's' ){
+int main() {;
+    while (true){
+        loadEnvFromFile("Backend/.env1");
+        std::string receivedMessage = receiveMessageFromCache();
+        std::cout << "Received message from frontend: " << receivedMessage << std::endl;
+        std::cout<<receivedMessage;
+        std::map<std::string, std::vector<FileData>> dataMap = readIndexFile(getenv("FILE"));
+        std::string rezultado = printFileDataForMultipleKeys(dataMap, receivedMessage, std::stoi(getenv("TOPK")));  
 
-            std::map<std::string, std::vector<FileData>> dataMap = readIndexFile(getenv("FILE"));
-            std::string userInput = "";
-            pid_t pid = getpid();
-
-            std::cout << "“BUSCADOR BASADO EN INDICE INVERTIDO” (" << pid<<")" <<std::endl;
-            std::cout << "Los top K documentos serán =: "<< TOPK <<std::endl;
-            std::cout << "Escriba texto a buscar: ";
-            std::cin >> std::ws;
-            std::getline(std::cin, userInput);
-            std::transform(userInput.begin(), userInput.end(), userInput.begin(), ::tolower); 
-            std::cout << "Respuesta: ";          
-            // Imprime los resultados ACA SE GUARDA EL STRING CON LA RESPUESTA!!!!!!
-            std::string rezultado = printFileDataForMultipleKeys(dataMap, userInput, std::stoi(TOPK));  
-
-            std::cout << "final ..: "<<rezultado<<std::endl;;
-            std::cout << "Desea seguir (S/N):" ;
-            std::cin >> seguir;
-
-            seguir = std::tolower(static_cast<unsigned char>(seguir));
-        }
+        sendMessageToCache(rezultado);
+    }
     return 0;
     }

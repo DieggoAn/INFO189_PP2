@@ -23,7 +23,6 @@ std::string receiveMessageFromFrontend() {
         std::cerr << "Error creating server socket" << std::endl;
         return "";
     }
-
     sockaddr_in serverAddr;
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(PORT_CACHE);
@@ -56,6 +55,8 @@ std::string receiveMessageFromFrontend() {
 
     return std::string(buffer);
 }
+
+
 
 void sendResponseToFrontend(const std::string& response) {
     std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -189,33 +190,6 @@ int main() {
     loadEnvFromFile("Cache/.env");
     std::string data = "hola mundo,file034.txt:1;file029.txt:1;file021.txt:4;file025.txt:1;file035.txt:1;";
     std::map<std::string, std::vector<FileData>> dataMap = parseData(data);
-            
-    std::string receivedMessage = receiveMessageFromFrontend();
-    std::cout << "Received message from frontend: " << receivedMessage << std::endl;
-    auto start = std::chrono::high_resolution_clock::now();
-    std::pair<std::string, std::string> result = parseMessage(receivedMessage);
-
-    std::cout << "Topk: " << result.first << std::endl;
-    std::cout << "TxtToSearch: " << result.second << std::endl;
-
-    bool allWordsFound = checkWordsInMap(result.second, std::stoi(result.first),dataMap);
-
-    if (allWordsFound) {
-        auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-        std::string resultados = "";
-        std::cout << "All words found in the map." << std::endl;
-        auto last = std::prev(dataMap.end());
-        for (auto it = dataMap.begin(); it != last; ++it) {
-            const auto& entry = *it;
-            resultados += entry.first + ",";
-        }
-        std::string tiempo = "15";
-        std::string response = "{origen:\"" + std::string(getenv("HOST")) + "\",destino:\"" + std::string(getenv("FRONT")) + "\",contexto:{tiempo:\"" + durationToString(duration) + "\",ori:\"CACHE\",isFound=true,resultados:[" + resultados + "]}}";
-        sendResponseToFrontend(response);
-    } else {
-        std::cout << "Not all words found in the map." << std::endl;
-    }
     while(true){
 
         std::string receivedMessage = receiveMessageFromFrontend();
@@ -243,6 +217,11 @@ int main() {
             sendResponseToFrontend(response);
         } else {
             std::cout << "Not all words found in the map." << std::endl;
+            std::cout <<result.second<<std::endl;
+            sendResponseToBackend(result.second);
+            std::string receivedMessage = receiveMessageFromFrontend();
+            std::cout << "Received message from backend: " << receivedMessage << std::endl;
+            sendResponseToFrontend(receivedMessage);
         }
     }
     return 0;
