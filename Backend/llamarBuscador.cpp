@@ -71,10 +71,29 @@ std::string receiveMessageFromCache() {
         close(serverSocket);
         return "";
     }
+    // Receive data in a loop until a message is received
+    std::string receivedMessage;
+    char buffer[1024];
+    int bytesRead;
 
-    char buffer[1024] = {0};
-    recv(clientSocket, buffer, sizeof(buffer), 0);
-
+    while (true) {
+        bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
+        if (bytesRead > 0) {
+            receivedMessage.append(buffer, bytesRead);
+            if (receivedMessage.find('\0') != std::string::npos) {
+                // Assuming '\0' is the message terminator; adjust as needed
+                break; // Message received completely
+            }
+        } else if (bytesRead == 0) {
+            // Connection closed by the client
+            break;
+        } else {
+            std::cerr << "Error receiving data" << std::endl;
+            close(clientSocket);
+            close(serverSocket);
+            return "";
+        }
+    }
     close(clientSocket);
     close(serverSocket);
     return std::string(buffer);
@@ -186,7 +205,6 @@ std::string printFileDataForMultipleKeys(const std::map<std::string, std::vector
         int matchedCount = matchedKeysCount[filename];
 
         if (matchedCount == totalKeys) {
-            std::cout << "Filename: " << filename << ", Recurrence: " << recurrence << std::endl;
             if(cont < TOPK){
                 rezultado += filename + ":" + std::to_string(recurrence) + ";";
                 cont ++;
@@ -219,8 +237,8 @@ void loadEnvFromFile(const std::string& envFilePath) { //funcion para cargar var
 }
 
 int main() {;
-    while (true){
         loadEnvFromFile("Backend/.env1");
+    while (true){
         std::string receivedMessage = receiveMessageFromCache();
         std::cout << "Received message from frontend: " << receivedMessage << std::endl;
         std::cout<<receivedMessage;
@@ -228,6 +246,7 @@ int main() {;
         std::string rezultado = printFileDataForMultipleKeys(dataMap, receivedMessage, std::stoi(getenv("TOPK")));  
 
         sendMessageToCache(rezultado);
+        std::cout<<"Message sent : " << rezultado <<std::endl;
     }
     return 0;
     }

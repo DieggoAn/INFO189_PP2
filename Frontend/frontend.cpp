@@ -67,9 +67,29 @@ std::string receiveMessageFromCache() {
         return "";
     }
 
-    char buffer[1024] = {0};
-    recv(clientSocket, buffer, sizeof(buffer), 0);
+    // Receive data in a loop until a message is received
+    std::string receivedMessage;
+    char buffer[1024];
+    int bytesRead;
 
+    while (true) {
+        bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
+        if (bytesRead > 0) {
+            receivedMessage.append(buffer, bytesRead);
+            if (receivedMessage.find('\0') != std::string::npos) {
+                // Assuming '\0' is the message terminator; adjust as needed
+                break; // Message received completely
+            }
+        } else if (bytesRead == 0) {
+            // Connection closed by the client
+            break;
+        } else {
+            std::cerr << "Error receiving data" << std::endl;
+            close(clientSocket);
+            close(serverSocket);
+            return "";
+        }
+    }
     close(clientSocket);
     close(serverSocket);
 
