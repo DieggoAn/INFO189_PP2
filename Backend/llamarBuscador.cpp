@@ -260,9 +260,9 @@ int main() {;
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
         std::string resultadoh;
         if (rezultado=="")
-            resultadoh = "mensaje={origen:\"" + std::string(getenv("FROM")) + "\",destino:\"" + std::string(getenv("TO")) + "\",contexto:{tiempo:\""+durationToString(duration)+"\", ori=”BACKEND”, isFound=false, resultados:[] }}";
+            resultadoh = "{\n\torigen:\"" + std::string(getenv("FROM")) + "\",\n\tdestino:\"" + std::string(getenv("TO")) + "\",\n\tcontexto:{tiempo:\""+durationToString(duration)+"\", ori=”BACKEND”, isFound=false, resultados:[]}\n}";
         else
-            resultadoh = "mensaje={origen:\"" + std::string(getenv("FROM")) + "\",destino:\"" + std::string(getenv("TO")) + "\",contexto:{tiempo:\""+durationToString(duration)+"\", ori=”BACKEND”, isFound=true, resultados:["+rezultado+"] }}";
+            resultadoh = "{\n\torigen:\"" + std::string(getenv("FROM")) + "\",\n\tdestino:\"" + std::string(getenv("TO")) + "\",\n\tcontexto:{tiempo:\""+durationToString(duration)+"\", ori=”BACKEND”, isFound=true, resultados:["+rezultado+"]}\n}";
         sendMessageToCache(resultadoh);
         std::cout<<"Message sent : " << resultadoh <<std::endl;
     }

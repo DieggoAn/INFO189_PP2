@@ -82,7 +82,6 @@ std::string receiveMessageFromFrontend() {
 
 
 void sendResponseToFrontend(const std::string& response) {
-    std::this_thread::sleep_for(std::chrono::seconds(1));
     int frontendSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (frontendSocket == -1) {
         std::cerr << "Error creating frontend socket" << std::endl;
@@ -246,7 +245,7 @@ int main() {
                 resultados += entry.first + ",";
             }
             std::string tiempo = "15";
-            std::string response = "{origen:\"" + std::string(getenv("HOST")) + "\",destino:\"" + std::string(getenv("FRONT")) + "\",contexto:{tiempo:\"" + durationToString(duration) + "\",ori:\"CACHE\",isFound=true,resultados:[" + resultados + "]}}";
+            std::string response = "{\n\torigen:\"" + std::string(getenv("HOST")) + "\",\n\tdestino:\"" + std::string(getenv("FRONT")) + "\",\n\tcontexto:{tiempo:\"" + durationToString(duration) + "\",ori:\"CACHE\",isFound=true,resultados:[" + resultados + "]}\n}";
             sendResponseToFrontend(response);
         } else {
             std::cout << "Not all words found in the map." << std::endl;

@@ -145,7 +145,7 @@ int main() {
         std::cin >> std::ws;
         std::getline(std::cin, userInput);
         std::transform(userInput.begin(), userInput.end(), userInput.begin(), ::tolower); 
-        std::string mensaje = "{origen:\"" + std::string(getenv("FROM")) +  "\",destino:\"" + std::string(getenv("TO")) + "\",contexto:{topk:\"" + (getenv("TOPK")) +"\", txtToSearch:\"" + userInput +"\"}}";
+        std::string mensaje = "{\n\torigen:\"" + std::string(getenv("FROM")) + "\",\n\tdestino:\"" + std::string(getenv("TO")) + "\",\n\tcontexto:{topk:\"" + (getenv("TOPK")) +"\", txtToSearch:\"" + userInput +"\"}\n}";
         bool mensahe = sendMessageToCache(mensaje);
         std::string response = receiveMessageFromCache();
         std::cout << "Respuesta: "<<response<<std::endl;          
