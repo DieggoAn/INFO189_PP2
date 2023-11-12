@@ -1,6 +1,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <queue>
 #include <string>
 #include <sstream>
 #include <regex>
@@ -11,8 +12,6 @@
 #include <unistd.h>
 #include <thread>
 #include <chrono>
-#include <thread>
-#include <thread>
 #include <mutex>
 #include <condition_variable>
 
@@ -168,34 +167,44 @@ void loadEnvFromFile(const std::string& envFilePath) { //funcion para cargar var
     }
 }
 
-std::map<std::string, std::vector<FileData>> parseData(const std::string& data) { //funcion que parsea mensaje y los anade a un map
-    std::map<std::string, std::vector<FileData>> dataMap;
-    std::istringstream iss(data);
-    std::string word;
-    while (std::getline(iss, word, ';')) {
-        std::string key;
-        std::vector<FileData> fileDataList;
-        
-        std::istringstream wordStream(word);
-        std::getline(wordStream, key, ',');
-        
-        std::string fileDataStr;
-        while (std::getline(wordStream, fileDataStr, ';')) {
-            std::istringstream fileDataStream(fileDataStr);
-            std::string filename;
-            char separator;
-            int recurrence;
-            fileDataStream >> filename >> separator >> recurrence;
-            fileDataList.push_back({filename, recurrence});
-        }
-        
-        dataMap[key] = fileDataList;
+
+void parseData(const std::string& keyValue, const std::string& data, std::map<std::string, std::vector<std::string>>& dataMap, size_t maxSize) {
+    std::istringstream dataStream(data);
+    std::string fileDataStr;
+
+    std::vector<std::string> fileDataList;
+
+    while (std::getline(dataStream, fileDataStr, ';')) {
+        fileDataList.push_back(fileDataStr);
     }
 
-    return dataMap;
+    // Check if the maximum size is reached
+    if (dataMap.size() >= maxSize) {
+        // Remove the oldest entry (the first one added)
+        auto oldestEntry = dataMap.begin();
+        std::cout << "Removing oldest entry: " << oldestEntry->first << std::endl;
+        dataMap.erase(oldestEntry);
+    }
+
+    // Add the new data to the map
+    dataMap[keyValue] = fileDataList;
+    std::cout << "Added to map: " << keyValue << std::endl;
 }
 
-bool checkWordsInMap(const std::string& txtToSearch, int TOPK,const std::map<std::string, std::vector<FileData>>& wordMap) {  //busca si el texto existe en el map  
+std::string extractResultados(const std::string& message) {
+    size_t startPos = message.find("resultados:[");
+    size_t endPos = message.find("]", startPos);
+
+    if (startPos != std::string::npos && endPos != std::string::npos) {
+        // Extract the content within "resultados:[...]"
+        std::string resultadosContent = message.substr(startPos + 12, endPos - startPos - 12);
+        return resultadosContent;
+    }
+
+    return ""; // Return an empty string if "resultados:[...]" is not found
+}
+
+bool checkWordsInMap(const std::string& txtToSearch, int TOPK,const std::map<std::string, std::vector<std::string>>& wordMap) {  //busca si el texto existe en el map  
     // All words found in the map, return true
     return wordMap.find(txtToSearch) != wordMap.end();
 }
@@ -212,8 +221,8 @@ std::string durationToString(const std::chrono::microseconds& duration) {
 
 int main() {
     loadEnvFromFile("Cache/.env");
-    std::string data = "hola mundo,file034.txt:1;file029.txt:1;file021.txt:4;file025.txt:1;file035.txt:1;";
-    std::map<std::string, std::vector<FileData>> dataMap = parseData(data);
+    size_t maxSize = getenv("MEMORYSIZE") != nullptr ? static_cast<size_t>(std::atol(getenv("MEMORYSIZE"))) : 0;
+    std::map<std::string, std::vector<std::string>> dataMap;
     while(true){
 
         std::string receivedMessage = receiveMessageFromFrontend();
@@ -244,7 +253,9 @@ int main() {
             std::cout <<result.second<<std::endl;
             sendResponseToBackend(result.second);
             std::string receivedMessage = receiveMessageFromFrontend();
+            std::string parsedMessage = extractResultados(receivedMessage);
             std::cout << "Received message from backend: " << receivedMessage << std::endl;
+            parseData(result.second,parsedMessage, dataMap, maxSize);
             sendResponseToFrontend(receivedMessage);
         }
     }

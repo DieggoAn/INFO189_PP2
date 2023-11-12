@@ -13,6 +13,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <thread>
+#include <chrono>
 
 
 const int PORT_CACHE = 9091;  // Port for cache
@@ -206,7 +207,7 @@ std::string printFileDataForMultipleKeys(const std::map<std::string, std::vector
 
         if (matchedCount == totalKeys) {
             if(cont < TOPK){
-                rezultado += filename + ":" + std::to_string(recurrence) + ";";
+                rezultado += "{archivo:\"" + filename + "\", puntaje:\"" + std::to_string(recurrence) + "\"}";
                 cont ++;
                 std::cout << rezultado << std::endl;
             }
@@ -236,17 +237,34 @@ void loadEnvFromFile(const std::string& envFilePath) { //funcion para cargar var
     }
 }
 
+std::string durationToString(const std::chrono::microseconds& duration) {
+    auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+    auto milliseconds = microseconds / 1000;
+    auto seconds = milliseconds / 1000;
+
+    return std::to_string(seconds) + "s " +
+           std::to_string(milliseconds % 1000) + "ms " +
+           std::to_string(microseconds % 1000) + "us";
+}
+
 int main() {;
         loadEnvFromFile("Backend/.env1");
     while (true){
         std::string receivedMessage = receiveMessageFromCache();
         std::cout << "Received message from frontend: " << receivedMessage << std::endl;
         std::cout<<receivedMessage;
+        auto start = std::chrono::high_resolution_clock::now();
         std::map<std::string, std::vector<FileData>> dataMap = readIndexFile(getenv("FILE"));
         std::string rezultado = printFileDataForMultipleKeys(dataMap, receivedMessage, std::stoi(getenv("TOPK")));  
-
-        sendMessageToCache(rezultado);
-        std::cout<<"Message sent : " << rezultado <<std::endl;
+        auto stop = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+        std::string resultadoh;
+        if (rezultado=="")
+            resultadoh = "mensaje={origen:\"" + std::string(getenv("FROM")) + "\",destino:\"" + std::string(getenv("TO")) + "\",contexto:{tiempo:\""+durationToString(duration)+"\", ori=”BACKEND”, isFound=false, resultados:[] }}";
+        else
+            resultadoh = "mensaje={origen:\"" + std::string(getenv("FROM")) + "\",destino:\"" + std::string(getenv("TO")) + "\",contexto:{tiempo:\""+durationToString(duration)+"\", ori=”BACKEND”, isFound=true, resultados:["+rezultado+"] }}";
+        sendMessageToCache(resultadoh);
+        std::cout<<"Message sent : " << resultadoh <<std::endl;
     }
     return 0;
     }
