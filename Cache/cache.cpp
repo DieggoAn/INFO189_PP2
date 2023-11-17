@@ -172,7 +172,6 @@ void parseData(const std::string& keyValue, const std::string& data, std::map<st
     std::string fileDataStr;
 
     std::vector<std::string> fileDataList;
-
     while (std::getline(dataStream, fileDataStr, ';')) {
         fileDataList.push_back(fileDataStr);
     }
@@ -240,12 +239,20 @@ int main() {
             std::string resultados = "";
             std::cout << "All words found in the map." << std::endl;
             auto last = std::prev(dataMap.end());
-            for (auto it = dataMap.begin(); it != last; ++it) {
-                const auto& entry = *it;
-                resultados += entry.first + ",";
+            for (const auto& entry : dataMap) {
+                if (entry.first == result.second) {
+                    for (const auto& value : entry.second) {
+                        resultados += value + ",";
+                    }
+                    if (!resultados.empty()) {
+                        resultados.pop_back();  // Remove the trailing comma
+                    }
+                    break;  // Stop the loop once the keyword is found
+                }
             }
-            std::string tiempo = "15";
+            std::cout << "aaaa" <<resultados<<std::endl;
             std::string response = "{\n\torigen:\"" + std::string(getenv("HOST")) + "\",\n\tdestino:\"" + std::string(getenv("FRONT")) + "\",\n\tcontexto:{tiempo:\"" + durationToString(duration) + "\",ori:\"CACHE\",isFound=true,resultados:[" + resultados + "]}\n}";
+            std::cout << "response:"<<response<<std::endl;
             sendResponseToFrontend(response);
         } else {
             std::cout << "Not all words found in the map." << std::endl;
@@ -254,6 +261,7 @@ int main() {
             std::string receivedMessage = receiveMessageFromFrontend();
             std::string parsedMessage = extractResultados(receivedMessage);
             std::cout << "Received message from backend: " << receivedMessage << std::endl;
+            std::cout << "mensaje = "<<parsedMessage<<std::endl;
             parseData(result.second,parsedMessage, dataMap, maxSize);
             sendResponseToFrontend(receivedMessage);
         }
